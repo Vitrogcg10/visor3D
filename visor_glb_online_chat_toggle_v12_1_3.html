@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Visor 3D – Prototipo QR (v12.1.3)</title>
+  <title>Visor 3D – Prototipo QR (v12.2, GitHub)</title>
   <style>
     :root{ --bg:#0f1f2f; --panel:#17334f; --accent:#2a6fbd; --accent2:#3281db; --text:#eaf2ff; --muted:#cfe1ff; }
     html, body { height:100%; margin:0; background:var(--bg); color:var(--text); font-family: Segoe UI, Roboto, Arial, sans-serif; }
@@ -35,7 +35,7 @@
 </head>
 <body>
   <header>
-    <h1>Visor 3D – Prototipo QR (v12.1.3)</h1>
+    <h1>Visor 3D – Prototipo QR (v12.2, GitHub)</h1>
     <div class="actions">
       <a class="btn" id="btnDocs" href="#"><span>📄</span> Abrir documentación</a>
       <label class="btn" for="fileInput"><span>📦</span> Cargar modelo (.glb)</label>
@@ -81,9 +81,8 @@
 
 <script>
 (function(){
-  // Descarga cruda del GLB en SharePoint (SourceUrl)
-  const SERVER_RELATIVE = "/sites/Prueba297/Documentos%20compartidos/Proyectos%20MEXICO/PlantaPrueba/ProyectoPrueba/assem2.glb";
-  const DEFAULT_MODEL_URL = "https://vitroonline.sharepoint.com/_layouts/15/download.aspx?SourceUrl=" + encodeURIComponent(SERVER_RELATIVE);
+  // GLB por defecto en la MISMA carpeta de GitHub Pages
+  const DEFAULT_MODEL_URL = "assem2.glb";
 
   let scene, camera, renderer, controls, gltf, root;
   const viewerCard = document.getElementById('viewerCard');
@@ -163,12 +162,13 @@
     // Limpia modelo previo
     if(root){ scene.remove(root); disposeHierarchy(root); root = null; }
 
-    // GLTFLoader con DRACO (necesario para KHR_draco_mesh_compression)
+    // GLTFLoader con DRACO (necesario si el GLB está comprimido)
     const loader = new THREE.GLTFLoader();
+
+    // Opción 1: decoders DRACO desde carpeta local ./draco/
     const dracoLoader = new THREE.DRACOLoader();
-    // *** Cambia a decoders LOCALES en ./draco/ (recomendado para SharePoint) ***
     dracoLoader.setDecoderPath('./draco/');
-    dracoLoader.setDecoderConfig({ type: 'wasm' }); // usar WASM suele evitar políticas anti-eval
+    dracoLoader.setDecoderConfig({ type: 'wasm' });
     loader.setDRACOLoader(dracoLoader);
 
     loader.load(url, (g)=>{
