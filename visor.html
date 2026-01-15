@@ -6,75 +6,44 @@
   <title>Visor 3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Carga el componente <model-viewer> -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js</script>
   <style>
     body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
-    h1 { margin: 0 0 8px; }
-    .muted { color: #666; font-size: 14px; }
-    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
-    .btn { display: inline-flex; gap: 8px; align-items: center; padding: 10px 14px; border-radius: 8px; background: #0a66ff; color: #fff; text-decoration: none; }
-    .btn:disabled, .btn[disabled] { opacity: .6; pointer-events: none; }
+    h1 { margin-bottom: 8px; }
+    .row { display: flex; gap: 10px; margin: 12px 0; }
+    .btn { padding: 10px 14px; border-radius: 8px; background: #0a66ff; color: #fff; text-decoration: none; }
+    .btn:disabled { opacity: .6; pointer-events: none; }
     model-viewer { width: 100%; height: 560px; background: #f8f9fb; border-radius: 12px; border: 1px solid #e5e7eb; }
-    .error { color: #b00020; margin-top: 10px; }
     @media (max-width: 768px){ model-viewer{ height: 420px; } }
   </style>
 </head>
 <body>
-  <h1>Visor 3D de Proyectos</h1>
-  <div class="muted" id="meta">Cargando…</div>
+  <h1>Visor 3D de Proyecto</h1>
+  <div id="meta"></div>
 
-  <model-viewer id="mv"
-    camera-controls
-    autoplay
-    exposure="1"
-    shadow-intensity="0.8"
-    touch-action="pan-y"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    environment-image="neutral"
-    poster=""
-  ></model-viewer>
+  pan-y</model-viewer>
 
   <div class="row">
-    #📄 Abrir documentación</a>
-    <a id="btnDescargarGLB" class="btn" href="#" target="_blank" rel="noopener">⬇️ Descargar GLB</a>
-    <span id="status" class="muted"></span>
+    #📄 Documentación</a>
+    #⬇️ Descargar GLB</a>
   </div>
-
-  <div id="errors" class="error"></div>
 
   <script>
     const qs = new URLSearchParams(location.search);
     const fileId = qs.get('fileId');
-    const glb = qs.get('glb');   // URL directo al .glb
-    const docs = qs.get('docs'); // URL a carpeta/índice de PDFs
+    const glb = qs.get('glb');
+    const docs = qs.get('docs');
 
     const metaEl = document.getElementById('meta');
     const mv = document.getElementById('mv');
     const btnDocs = document.getElementById('btnDocs');
     const btnDesc = document.getElementById('btnDescargarGLB');
-    const statusEl = document.getElementById('status');
-    const errorsEl = document.getElementById('errors');
 
-    function esc(s){ return String(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])) }
-
-    (function main(){
-      if(!fileId){ errorsEl.textContent = "Falta el parámetro fileId."; return; }
-      if(!glb){ errorsEl.textContent = "Falta el parámetro glb (URL del modelo)."; return; }
-
-      metaEl.innerHTML = `ID: <strong>${esc(fileId)}</strong>`;
-      mv.src = glb;
-      btnDesc.href = glb;
-
-      if(docs){
-        btnDocs.href = docs;
-        btnDocs.removeAttribute('disabled');
-      } else {
-        btnDocs.setAttribute('disabled','true');
-      }
-
-      statusEl.textContent = "Listo.";
-    })();
+    if(fileId) metaEl.textContent = "ID del proyecto: " + fileId;
+    if(glb) mv.src = glb;
+    if(glb) btnDesc.href = glb;
+    if(docs) btnDocs.href = docs;
   </script>
 </body>
 </html>
+
