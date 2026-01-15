@@ -7,13 +7,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root {
-  --bg: #111;
-  --panel: #1b1b1b;
-  --text: #eaeaea;
-  --muted: #9aa0a6;
-  --primary: #1167b1;
-  --primary-hover: #0e5795;
-  --accent: #22c55e;
+  --bg: #111; --panel: #1b1b1b; --text: #eaeaea; --muted: #9aa0a6;
+  --primary: #1167b1; --primary-hover: #0e5795; --accent: #22c55e;
 }
 body { margin:0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
 header { padding: 12px 16px; border-bottom: 1px solid #222; display:flex; justify-content:space-between; align-items:center; }
@@ -24,46 +19,41 @@ h1 { margin:0; font-size:18px; }
 .btn-primary:hover { background: var(--primary-hover); }
 .btn-outline { background:transparent; color:var(--text); border:1px solid #333; }
 .btn-outline:hover { border-color:#444; }
-.layout { display:grid; grid-template-columns:1fr 320px; height:calc(100vh - 56px); transition:grid-template-columns .2s ease; }
-.layout.collapsed { grid-template-columns:1fr 0px; }
+.layout { display:grid; grid-template-columns:1fr 320px; height:calc(100vh - 56px); }
 #app { position:relative; background:#0f0f0f; }
 #canvasWrap { position:absolute; inset:0; }
-aside { background:var(--panel); border-left:1px solid #222; padding:12px; overflow:auto; transition:width .2s ease, opacity .2s ease; }
-.layout.collapsed aside { width:0; opacity:0; pointer-events:none; }
-.aside-handle { position:absolute; top:50%; right:320px; transform:translateY(-50%); background:#222; color:var(--text); border:1px solid #333; border-right:none; padding:6px 10px; border-radius:8px 0 0 8px; cursor:pointer; z-index:5; font-size:16px; }
-.layout.collapsed .aside-handle { right:0; border-right:1px solid #333; border-left:none; border-radius:0 8px 8px 0; }
+aside { background:var(--panel); border-left:1px solid #222; padding:12px; overflow:auto; }
 .kv { display:grid; grid-template-columns:130px 1fr; gap:6px; font-size:13px; }
 .kv .label { color:var(--muted); }
 .progress { margin-top:8px; height:8px; background:#222; border-radius:999px; overflow:hidden; }
 .progress .bar { height:100%; width:0%; background: var(--accent); transition:width .2s ease; }
 .small { color:var(--muted); font-size:12px; }
 .footer { position:absolute; left:12px; bottom:12px; background:rgba(0,0,0,.35); padding:6px 8px; border-radius:6px; font-size:12px; }
-input[type="file"] { display:none; }
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/"}}</script>
 </head>
 <body>
 <header>
-  <h1 id="headerTitle">Visor 3D - (sin archivo)</h1>
+  <h1 id="headerTitle">Visor 3D - Proyecto</h1>
   <div class="toolbar">
-    <button id="btnOpenDoc" class="btn btn-outline">📄 Abrir documentación</button>
-    <label for="fileGlb" class="btn btn-outline" style="cursor:pointer;">📦 Cargar modelo (.glb)</label>
-    <input id="fileGlb" type="file" accept=".glb,.gltf" />
-    <button id="btnRecenter" class="btn btn-outline">🎯 Recentrar vista</button>
+    <button id="btnOpenDoc" class="btn btn-outline">📄 Documentación</button>
+    <button id="btnRecenter" class="btn btn-outline">🎯 Recentrar</button>
+    <button id="btnSolicitar" class="btn btn-primary">🔧 Solicitar refacción</button>
+    <button id="btnChatTeams" class="btn btn-outline">💬 Chat Teams</button>
   </div>
 </header>
-<div class="layout" id="layoutRoot">
-  <div id="asideHandle" class="aside-handle">▸</div>
+<div class="layout">
   <main id="app"><div id="canvasWrap"></div><div class="footer small">Listo.</div></main>
   <aside>
     <h3>Información</h3>
     <div class="kv">
-      <div class="label">ID Proyecto</div><div id="kvFile">—</div>
+      <div class="label">Proyecto</div><div id="kvProyecto">—</div>
+      <div class="label">ID</div><div id="kvFile">—</div>
       <div class="label">Parte</div><div id="kvParte">—</div>
       <div class="label">Subensamble</div><div id="kvSub">—</div>
     </div>
     <h3 style="margin-top:12px;">Estado</h3>
-    <div id="status">Sin modelo 3D cargado.</div>
+    <div id="status">Sin modelo cargado.</div>
     <div class="progress"><div id="progressBar" class="bar"></div></div>
     <div id="progressText" class="small">0% 0 / 0 KB</div>
   </aside>
@@ -78,23 +68,33 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const qs = new URLSearchParams(location.search);
 const fileId = qs.get('fileId');
+const proyecto = qs.get('proyecto');
 const glbUrl = qs.get('glb');
 const docsUrl = qs.get('docs');
 
 const headerTitle = document.getElementById('headerTitle');
+const kvProyecto = document.getElementById('kvProyecto');
 const kvFile = document.getElementById('kvFile');
+const kvParte = document.getElementById('kvParte');
+const kvSub = document.getElementById('kvSub');
 const statusEl = document.getElementById('status');
 const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
-const btnOpenDoc = document.getElementById('btnOpenDoc');
 
-if (fileId) {
-  headerTitle.textContent = `Visor 3D - Proyecto ${fileId}`;
-  kvFile.textContent = fileId;
-}
-if (docsUrl) {
-  btnOpenDoc.onclick = () => window.open(docsUrl, '_blank');
-}
+headerTitle.textContent = `Visor 3D - Proyecto ${proyecto || '(sin nombre)'}`;
+kvProyecto.textContent = proyecto || '—';
+kvFile.textContent = fileId || '—';
+
+document.getElementById('btnOpenDoc').onclick = () => docsUrl ? window.open(docsUrl,'_blank') : alert('No hay documentación');
+document.getElementById('btnSolicitar').onclick = () => {
+  const subject = `Solicitud de refacción - ${proyecto}`;
+  const body = `Proyecto: ${proyecto}\nID: ${fileId}\nParte: ${kvParte.textContent}\nSubensamble: ${kvSub.textContent}\nDocumentación: ${docsUrl}`;
+  window.location.href = `mailto:mantenimiento@tuempresa.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
+document.getElementById('btnChatTeams').onclick = () => {
+  const params = new URLSearchParams({proyecto, fileId, parte: kvParte.textContent, subensamble: kvSub.textContent});
+  window.open(`https://teams.microsoft.com/l/chat/0/0?${params.toString()}`,'_blank');
+};
 
 const container = document.getElementById('canvasWrap');
 const renderer = new THREE.WebGLRenderer({antialias:true});
@@ -154,30 +154,14 @@ function recenterView() {
   const fitDist = maxDim*1.5;
   const dirVec = new THREE.Vector3(1,0.6,1).normalize();
   camera.position.copy(center).addScaledVector(dirVec,fitDist);
-  camera.near = Math.max(0.01,maxDim/1000);
-  camera.far = maxDim*1000;
-  camera.updateProjectionMatrix();
-}
+  [], true);
+  if (intersects.length > 0) {
+    const obj = intersects[0].object;
+    Proyecto, ID, Parte, Subensamble.
+- Botones:
+  - **Documentación** → abre SharePoint.
+  - **Solicitar refacción** → mailto con datos dinámicos.
+  - **Chat Teams** → abre Teams con parámetros.
+- Click en pieza → muestra Parte y Subensamble.
 
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene,camera);
-}
-animate();
 
-window.addEventListener('resize', () => {
-  const w = container.clientWidth;
-  const h = container.clientHeight;
-  renderer.setSize(w,h);
-  camera.aspect = w/h;
-  camera.updateProjectionMatrix();
-});
-
-document.getElementById('btnRecenter').addEventListener('click', recenterView);
-
-// Cargar GLB desde URL si existe
-if (glbUrl) loadGLB(glbUrl);
-</script>
-</body>
-</html>
