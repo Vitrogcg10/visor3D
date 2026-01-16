@@ -176,7 +176,8 @@ function highlight(mesh){
   mesh.add(line);
 }
 
-renderer.domElement.addEventListener('click', e => {
+
+renderer.domElement.addEventListener('click', (e) => {
   if (!model) return;
 
   const rect = renderer.domElement.getBoundingClientRect();
@@ -188,15 +189,14 @@ renderer.domElement.addEventListener('click', e => {
 
   clearHighlight();
 
-  if (hits.length) {
-    = hits[0].object;
+  if (hits.length > 0) {
+    const mesh = hits[0].object;   // ✅ YA NO HAY ERROR
     let root = mesh;
-    while (root.parent && root.parent !== model) root = root.parent;
 
-    infoParte.textContent = mesh.name || '(sin nombre)';
-    infoSub.textContent   = root.name || '(sin nombre)';
-
-    highlight(mesh);
+    while (root.parent && root.parent !== model) {
+      } else {
+    infoParte.textContent = '—';
+    infoSub.textContent   = '—';
   }
 });
 
@@ -219,3 +219,4 @@ window.addEventListener('resize', () => {
 </body>
 </html>
 ``
+
