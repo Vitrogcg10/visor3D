@@ -3,50 +3,50 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Visor 3D – Proyecto</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visor 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body {
-  margin:0;
-  background:#0f0f0f;
-  color:#eaeaea;
-  font-family: system-ui, Arial, sans-serif;
-}
+body { margin:0; background:#111; color:#eaeaea; font-family:Arial,sans-serif; }
 header {
-  padding:12px 16px;
+  padding:10px 16px;
   border-bottom:1px solid #222;
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
-h1 { margin:0; font-size:18px; }
-button { padding:8px 12px; background:#1f1f1f; color:#fff; border:1px solid #333; border-radius:6px; cursor:pointer; }
+button {
+  background:#1f1f1f;
+  color:#fff;
+  border:1px solid #333;
+  border-radius:6px;
+  padding:8px 12px;
+  cursor:pointer;
+}
 button:hover { border-color:#555; }
 
 .layout {
   display:grid;
   grid-template-columns: 1fr 300px;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 52px);
 }
 #viewer { position:relative; }
-#canvasWrap { position:absolute; inset:0; }
+#canvas { position:absolute; inset:0; }
 
 aside {
-  background:#161616;
   border-left:1px solid #222;
   padding:12px;
+  background:#161616;
 }
-.label { color:#9aa0a6; font-size:12px; }
-.value { margin-bottom:8px; }
+.label { color:#9aa0a6; font-size:12px; margin-top:10px; }
 </style>
 
 <script type="importmap">
 {
- "imports": {
-   "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
-   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/"
- }
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/"
+  }
 }
 </script>
 </head>
@@ -54,30 +54,23 @@ aside {
 <body>
 
 <header>
-  <h1 id="title">Visor 3D</h1>
-  <div>
-    <button id="btnDoc">Documentación</button>
-    <button id="btnCenter">Recentrar</button>
-  </div>
+  <h1 id="hdr">Visor 3D</h1>
+  <button id="btnCenter">Recentrar</button>
 </header>
 
 <div class="layout">
   <div id="viewer">
-    <div id="canvasWrap"></div>
+    <div id="canvas"></div>
   </div>
-
   <aside>
     <div class="label">Proyecto</div>
-    <div id="infoProyecto" class="value">—</div>
-
+    <div id="pProyecto">—</div>
     <div class="label">File ID</div>
-    <div id="infoFile" class="value">—</div>
-
+    <div id="pFile">—</div>
     <div class="label">Parte</div>
-    <div id="infoParte" class="value">—</div>
-
+    <div id="pParte">—</div>
     <div class="label">Subensamble</div>
-    <div id="infoSub" class="value">—</div>
+    <div id="pSub">—</div>
   </aside>
 </div>
 
@@ -86,137 +79,84 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* -------- parámetros -------- */
-const qs = new URLSearchParams(location.search);
-const fileId   = qs.get('fileId');
-const proyecto = qs.get('proyecto');
-const glbUrl   = qs.get('glb');
-const docsUrl  = qs.get('docs');
+var qs = new URLSearchParams(window.location.search);
+var proyecto = qs.get('proyecto');
+var fileId = qs.get('fileId');
+var glbUrl = qs.get('glb');
 
-/* -------- UI -------- */
-document.getElementById('title').textContent =
-  `Visor 3D - ${proyecto || 'Proyecto'}`;
+if (proyecto) document.getElementById('hdr').innerText = 'Visor 3D - ' + proyecto;
+if (fileId) document.getElementById('pFile').innerText = fileId;
+if (proyecto) document.getElementById('pProyecto').innerText = proyecto;
 
-document.getElementById('infoProyecto').textContent = proyecto || '—';
-document.getElementById('infoFile').textContent = fileId || '—';
+var container = document.getElementById('canvas');
 
-document.getElementById('btnDoc').onclick = () => {
-  if (docsUrl) window.open(docsUrl, '_blank');
-};
-
-const infoParte = document.getElementById('infoParte');
-const infoSub   = document.getElementById('infoSub');
-
-/* -------- Three.js -------- */
-const container = document.getElementById('canvasWrap');
-
-const renderer = new THREE.WebGLRenderer({ antialias:true });
+var renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
 container.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0f0f0f);
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111111);
 
-const camera = new THREE.PerspectiveCamera(
-  60,
-  container.clientWidth / container.clientHeight,
-  0.1,
-  2000
-);
+var camera = new THREE.PerspectiveCamera(60, container.clientWidth/container.clientHeight, 0.1, 2000);
 camera.position.set(3,2,6);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+var controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0x333333, 0.7));
 
-const light = new THREE.DirectionalLight(0xffffff, 1);
+var light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(5,10,7);
 scene.add(light);
 
-let model;
+var loader = new GLTFLoader();
+var model = null;
 
-/* -------- cargar GLB -------- */
-const loader = new GLTFLoader();
-if (glbUrl) {
-  loader.load(glbUrl, g => {
-    model = g.scene;
+function centerModel(){
+  if (!model) return;
+  var box = new THREE.Box3().setFromObject(model);
+  var center = box.getCenter(new THREE.Vector3());
+  controls.target.copy(center);
+  controls.update();
+}
+
+if (glbUrl){
+  loader.load(glbUrl, function(gltf){
+    model = gltf.scene;
     scene.add(model);
     centerModel();
   });
 }
 
-function centerModel() {
-  if (!model) return;
-  const box = new THREE.Box3().setFromObject(model);
-  const center = box.getCenter(new THREE.Vector3());
-  controls.target.copy(center);
-  controls.update();
-}
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
 
-/* -------- resaltado -------- */
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-function clearHighlight() {
-  if (!model) return;
-  model.traverse(o => {
-    if (o.name === '__hl__') {
-      o.parent.remove(o);
-    }
-  });
-}
-
-function highlight(mesh){
-  const geo = new THREE.EdgesGeometry(mesh.geometry);
-  const mat = new THREE.LineBasicMaterial({ color:0x22c55e });
-  const line = new THREE.LineSegments(geo, mat);
-  line.name = '__hl__';
-  mesh.add(line);
-}
-
-
-renderer.domElement.addEventListener('click', (e) => {
+renderer.domElement.addEventListener('click', function(e){
   if (!model) return;
 
-  const rect = renderer.domElement.getBoundingClientRect();
+  var rect = renderer.domElement.getBoundingClientRect();
   mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
-  const hits = raycaster.intersectObjects(model.children, true);
+  var hits = raycaster.intersectObjects(model.children, true);
 
-  clearHighlight();
+  if (hits.length > 0){
+    var mesh = hits[0].object;
+    var root = mesh;
+    while (root.parent && root.parent !== model) root = root.parent;
 
-  if (hits.length > 0) {
-    const mesh = hits[0].object;   // ✅ YA NO HAY ERROR
-    let root = mesh;
-
-    while (root.parent && root.parent !== model) {
-      } else {
-    infoParte.textContent = '—';
-    infoSub.textContent   = '—';
+    document.getElementById('pParte').innerText = mesh.name || '(sin nombre)';
+    document.getElementById('pSub').innerText = root.name || '(sin nombre)';
   }
 });
 
-/* -------- loop -------- */
+document.getElementById('btnCenter').onclick = centerModel;
+
 function animate(){
   requestAnimationFrame(animate);
   controls.update();
-  renderer.render(scene,camera);
+  renderer.render(scene, camera);
 }
-animate();
-
-document.getElementById('btnCenter').onclick = centerModel;
-
-window.addEventListener('resize', () => {
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  camera.aspect = container.clientWidth / container.clientHeight;
-  camera.updateProjectionMatrix();
-});
-</script>
-</body>
-</html>
-``
+animate
 
